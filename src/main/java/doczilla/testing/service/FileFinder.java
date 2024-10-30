@@ -14,25 +14,51 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+/**
+ * Класс, обнаруживающий и сортирующий файлы.
+ */
 public class FileFinder {
+
+    /**
+     * Путь до корневого каталога.
+     */
     private final Path rootPath;
+
+    /**
+     * Список файлов.
+     */
     private List<FileWithRequires> files;
 
     public FileFinder(Path rootPath) {
         this.rootPath = rootPath;
     }
 
+    /**
+     * Запускает процесс поиска и сортировки файлов
+     * @return отсортированный список файлов
+     * @throws IOException ошибка чтения файла
+     * @throws CyclicalDependencyException ошибка, возникающая при обнаружении циклической зависимости
+     */
     public List<FileWithRequires> run() throws IOException, CyclicalDependencyException {
         findFiles();
         return getSortedFiles();
     }
 
+    /**
+     * Запускает процесс поиска файлов
+     * @throws IOException ошибка чтения файла
+     */
     private void findFiles() throws IOException {
         CheckRequiresFileVisitor fileVisitor = new CheckRequiresFileVisitor(rootPath);
         Files.walkFileTree(rootPath, fileVisitor);
         files = fileVisitor.getFiles();
     }
 
+    /**
+     * Сортирует найденные файлы с помощью алгоритма топологической сортировки.
+     * @return Отсортированный список файлов
+     * @throws CyclicalDependencyException ошибка, возникающая при обнаружении циклической зависимости.
+     */
     private List<FileWithRequires> getSortedFiles() throws CyclicalDependencyException {
         Map<FileWithRequires, Integer> degreesOfOccurrence = new HashMap<>();
         for (FileWithRequires file : files) {
